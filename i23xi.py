@@ -1,33 +1,10 @@
 #!/usr/bin/env python3
-
-
 import linecache  # Reads specific lines
 from time import strftime  # Time and date printout
 import glob  # Directory listings for file counting
 import os.path  # Verify that files or directories exist
 import argparse  # Parse commands at execution
 import shutil  # Copy files (XDS.INP)
-
-# Parser definitions
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument(
-    "-th", help="cell parameters for thaumatin activated", action="store_true"
-)
-parser.add_argument(
-    "-pk", help="cell parameters for proteinase K activated", action="store_true"
-)
-parser.add_argument(
-    "-index",
-    help="fraction of indexed reflections required is lowered",
-    action="store_true",
-)
-
-args = parser.parse_args()
-
-# Version of I23_XDS_INP_gen
-I23_v = "r0.5"
 
 # Variable parameters
 
@@ -53,17 +30,8 @@ index_fraction_low = 0.3
 
 cbf_l = "cbf_header.log"  # Log file to create for cbf header
 
-# Parser overview
+index_fraction = index_fraction_def
 
-if args.index:
-    index_fraction = index_fraction_low
-else:
-    index_fraction = index_fraction_def
-
-
-if args.th and args.pk:
-    print("\n    ! Cannot have both th and pk cell active. Aborting ! \n")
-    quit()
 
 # Functions for finding lines, line numbers and cbf files
 def line_find(
@@ -275,10 +243,7 @@ def background_selection(
 
 # Startup screen with arguments printout
 
-print(("""
-    I23 XDS.INP generator version """ + str(
-    I23_v
-) + """
+print("""
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! Assumes kappa goniometer and a detector z offset of """ + str(
@@ -286,19 +251,6 @@ print(("""
 ) + """ mm !!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 """))
-
-if args.th:
-    print("    -th    [Thaumatin cell active]")
-if args.pk:
-    print("    -pk    [Proteinase K cell active]")
-if args.index:
-    print(("    -index    [Fraction of indexed reflections required is lowered from " + str(
-        int(index_fraction_def * 100)
-    ) + "% to " + str(
-        int(index_fraction_low * 100)
-    ) + "%]"))
-
-print("")
 
 # Check for XDS.INP in directory
 
@@ -513,23 +465,10 @@ while detector_yoff_check == True:
 
 # Cell parameters
 
-if args.th:
-    cell_printout = "  SPACE_GROUP_NUMBER= 92 \n  UNIT_CELL_CONSTANTS= 58 58 150 90.000 90.000 90.000"
-
-elif args.pk:
-    cell_printout = "  SPACE_GROUP_NUMBER= 96 \n  UNIT_CELL_CONSTANTS= 68 68 102 90.000 90.000 90.000"
-
-else:
-    cell_printout = ""
-
 try:
     with open("XDS.INP", "w") as f:  # Generate XDS.INP. Overwrites any previous copy
         f.write(
             """!========================================================================================
-!=
-!= I23_XDS.INP_gen version: """
-            + I23_v
-            + """
 !=
 != This file follows mostly the order of keywords given in the XDS documentation
 != 
